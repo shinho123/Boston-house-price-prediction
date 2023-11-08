@@ -13,10 +13,26 @@
 
 # EDA(Exploratory Data Analysis)
   # 데이터 정보 확인
-  
-<img width="345" alt="image" src="https://github.com/shinho123/Boston-house-price-prediction/assets/105840783/07d70633-ae2c-4b83-839d-f7c98c82a1d1">
+
+```python
+df = pd.DataFrame(data = boston.data, columns = boston.feature_names) 
+df = pd.concat([df, y_target], axis = 1)
+df.head()
+
+fig, axs = plt.subplots(ncols=7, nrows=2, figsize=(20, 10))
+index = 0
+axs = axs.flatten()
+for k,v in df.items():
+    sns.distplot(v, ax=axs[index])
+    index += 1
+plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=5.0)
+```
+
+<img width="421" alt="image" src="https://github.com/shinho123/Boston-house-price-prediction/assets/105840783/0229b316-b2dd-4a96-9ebe-bd46b101a064">
 
 <img width="321" alt="image" src="https://github.com/shinho123/Boston-house-price-prediction/assets/105840783/04d6a125-e3b0-4949-9273-308be3fd9752">
+
+<img width="345" alt="image" src="https://github.com/shinho123/Boston-house-price-prediction/assets/105840783/07d70633-ae2c-4b83-839d-f7c98c82a1d1">
 
 * CRIM, ZN, B열의 데이터가 일부 값에 심하게 치우쳐 분포되어 있는 경향을 보이고 있음
 
@@ -24,6 +40,11 @@
 
 # EDA(Exploratory Data Analysis)
  # 이상치 확인 및 제거
+
+```python
+null_df = df.isnull().sum().to_frame('Null')
+null_df
+```
 
  <img width="593" alt="image" src="https://github.com/shinho123/Boston-house-price-prediction/assets/105840783/d075f279-a6fd-4fa8-a674-ee5762ded5c5">
 
@@ -33,6 +54,10 @@
 
 # EDA(Exploratory Data Analysis)
  # 데이터 상관관계 분석
+
+```python
+df.corr()
+```
 
  <img width="577" alt="image" src="https://github.com/shinho123/Boston-house-price-prediction/assets/105840783/fda8fd70-a3a8-4712-8ed2-f809a0b6f369">
 
@@ -44,6 +69,18 @@
 
 # PREPROCESSING
  ## 모델 학습 전 데이터 전처리
+
+```python
+x_data = df[['LSTAT', 'RM', 'INDUS', 'TAX', 'CRIM', 'NOX', 'PTRATIO']]
+y_data = df['MEDV']
+
+x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size = 0.3) # 훈련 셋(7): 테스트 셋(3)
+
+scaler = MinMaxScaler()
+scaler.fit(x_train)
+x_train_scaled = scaler.transform(x_train)
+x_test_scaled = scaler.transform(x_test)
+```
 
 * 예측 변수 선택 : 'LSTAT', 'RM', 'INDUS', 'TAX', 'CRIM', 'NOX', 'PTRATIO'
  1. Train / test set split - 7:3
@@ -65,6 +102,19 @@
 
 # REGRESSION MODEL EVALUATION
  ## RANDOM FOREST REGRESSOR
+
+ * 라쏘 회귀(Lasso Regression)
+   * 라쏘 회귀는 기존 선형 회귀에 추가적인 제약을 주는 방식으로 과적합을 방지함
+   * MSE가 최소가 되게 하는 가중치와 편향을 찾으면서 동시에, 가중치들의 절댓값의 합이 최소가 되게함 (즉 모든 원소가 0이 되거나 0에 가깝게 되도록 해야 함)
+   * L1-norm
+
+
+* 릿지 회귀(Ridge Regression)
+  * 랏쏘 회귀와 매우 유사하지만 패널티 항에 L1-norm 대신에 L2-norm 패널티를 가짐
+  * 라쏘는 가중치들이 0이 되지만, 릿지의 가중치들은 0에 가까워질 뿐 0이 되지는 않음
+  * 일부분만 중요하다면 라쏘가, 특성의 중요도가 전체적으로 비슷하다면 릿지가 좀 더 괜찮은 모델임
+  * 따라서 해당 데이터 셋에서는 LSTAT, RM이 다른 변수에 비해 상관성이 높게 나왔으므로, 랏쏘 회귀가 더 적합함
+  * L2-norm
 
  <img width="565" alt="image" src="https://github.com/shinho123/Boston-house-price-prediction/assets/105840783/d29158c8-afcb-4d7f-89ec-c72909798bdc">
 
@@ -92,4 +142,4 @@
    
   * 모델 결과 해석
     * 랜덤 포레스트 모델을 통해 변수 중요도를 파악한 결과 주택 가격에 가장 영향을 많이 주는 변수는 LSTAT(하위계층 비율), RM(방의 개수)로 EDA에서도 LSTAT, RM 변수가 종속 변수와 가장 많은 상관성을 보여줌
-    * 그 다음으로 CRIM(범죄율), PTRATIO(학생/교사 비율), TAX(재산세율), INDUS(토지비율), NOX(일산화질소 지수)순으로 나타나고 있으며, 결국 주택가격은 주택 인근의 사회현상(범죄율)이나 인프라(학생/교사 비율)의 영향도 복합적으로 작용하는 것을 의미
+    * 그 다음으로 CRIM(범죄율), PTRATIO(학생/교사 비율), TAX(재산세율), INDUS(토지비율), NOX(일산화질소 지수)순으로 나타나고 있으며, 결국 주택가격은 주택 인근의 사회현상(범죄율)이나 인프라(학생/교사 비율)의 영향도 복합적으로 작용하는 것을 의미함

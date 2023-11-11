@@ -15,6 +15,13 @@
   # 데이터 정보 확인
 
 ```python
+boston = load_boston() # 데이터 셋 불러오기
+y_target = pd.Series(boston.target).to_frame('MEDV') # 종속 변수
+```
+
+* 데이터 셋은 파이썬으로 바로 업로드
+  
+```python
 df = pd.DataFrame(data = boston.data, columns = boston.feature_names) 
 df = pd.concat([df, y_target], axis = 1)
 df.head()
